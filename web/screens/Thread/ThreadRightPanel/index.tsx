@@ -216,7 +216,9 @@ const ThreadRightPanel = () => {
     [activeThread, resetModel, setEngineParamsUpdate, updateModelParameter]
   )
 
-  const tabsFromExtension = UIManager.instance().get(UIComponent.Tab)
+  const tabsFromExtension = UIManager.instance().get(
+    UIComponent.RightPanelTabItem
+  )
 
   if (!activeThread) {
     return null
