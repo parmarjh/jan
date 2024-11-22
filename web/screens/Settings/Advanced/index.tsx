@@ -39,6 +39,7 @@ import {
   vulkanEnabledAtom,
   quickAskEnabledAtom,
 } from '@/helpers/atoms/AppConfig.atom'
+import { telemetryAtom } from '@/helpers/atoms/Setting.atom'
 
 type GPU = {
   id: string
@@ -57,6 +58,7 @@ const Advanced = () => {
   const [vulkanEnabled, setVulkanEnabled] = useAtom(vulkanEnabledAtom)
   const [proxyEnabled, setProxyEnabled] = useAtom(proxyEnabledAtom)
   const quickAskEnabled = useAtomValue(quickAskEnabledAtom)
+  const [telemetry, setTelemetry] = useAtom(telemetryAtom)
 
   const [proxy, setProxy] = useAtom(proxyAtom)
   const [ignoreSSL, setIgnoreSSL] = useAtom(ignoreSslAtom)
@@ -539,6 +541,34 @@ const Advanced = () => {
             />
           </div>
         )}
+
+        {/* Product analitycs */}
+        <div className="flex w-full flex-col items-start justify-between gap-4 border-b border-[hsla(var(--app-border))] py-4 first:pt-0 last:border-none sm:flex-row">
+          <div className="space-y-1">
+            <div className="flex gap-x-2">
+              <h6 className="font-semibold capitalize">Telemetry</h6>
+            </div>
+            <p className="font-medium leading-relaxed text-[hsla(var(--text-secondary))]">
+              Jan never sees your chat. Jan only collects basic usage data to
+              see active user number and improve the product (reload needed).
+            </p>
+          </div>
+          <div className="flex-shrink-0">
+            <Switch
+              data-testid="telemetry-switch"
+              checked={telemetry}
+              onChange={() => {
+                toaster({
+                  title: 'Reload',
+                  description:
+                    'Telemetry settings updated. Reload now to apply the changes.',
+                })
+                setTelemetry(!telemetry)
+                window.core?.api?.relaunch()
+              }}
+            />
+          </div>
+        </div>
 
         {/* Clear log */}
         <div className="flex w-full flex-col items-start justify-between gap-4 border-b border-[hsla(var(--app-border))] py-4 first:pt-0 last:border-none sm:flex-row">

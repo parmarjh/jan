@@ -11,10 +11,12 @@ export const janSettingScreenAtom = atom<SettingScreen[]>([])
 export const THEME = 'themeAppearance'
 export const REDUCE_TRANSPARENT = 'reduceTransparent'
 export const SPELL_CHECKING = 'spellChecking'
+export const TELEMETRY = 'telemetry'
 export const themesOptionsAtom = atom<{ name: string; value: string }[]>([])
 export const janThemesPathAtom = atom<string | undefined>(undefined)
 export const selectedThemeIdAtom = atomWithStorage<string>(THEME, '')
 export const themeDataAtom = atom<Theme | undefined>(undefined)
+export const telemetryAtom = atomWithStorage<boolean>(TELEMETRY, true)
 export const reduceTransparentAtom = atomWithStorage<boolean>(
   REDUCE_TRANSPARENT,
   false
