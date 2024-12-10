@@ -25,7 +25,7 @@ export default [
       // Allow json resolution
       json(),
       //     Compile TypeScript files
-      typescript({ useTsconfigDeclarationDir: true }),
+      typescript({ useTsconfigDeclarationDir: true, exclude: ['src/node/*.ts'] }),
       // Compile TypeScript files
       // Allow bundling cjs modules (unlike webpack, rollup doesn't understand cjs)
       commonjs(),

@@ -1,6 +1,7 @@
 import { getJanDataFolderPath, normalizeFilePath } from '@janhq/core/node'
 import { retrieval } from './retrieval'
 import path from 'path'
+import { mcpTool } from './mcp'
 
 export function toolRetrievalUpdateTextSplitter(
   chunkSize: number,
@@ -41,4 +42,17 @@ export async function toolRetrievalQueryResult(
   return retrieval.generateResult(query, useTimeWeighted).catch((err) => {
     console.error(err)
   })
+}
+
+export async function toolMCPQuery(data: any) {
+  return mcpTool.process(data)
+}
+
+export async function configMCP(
+  exaAPIKey: string,
+  openaiAPIKey: string,
+  toolUseEndpoint: string,
+  model: string
+) {
+  return mcpTool.init(exaAPIKey, openaiAPIKey, toolUseEndpoint, model)
 }

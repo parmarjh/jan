@@ -8,9 +8,17 @@ import {
   ToolManager,
 } from '@janhq/core'
 import { RetrievalTool } from './tools/retrieval'
+import { MCPTool } from './tools/mcp'
 
 export default class JanAssistantExtension extends AssistantExtension {
   private static readonly _homeDir = 'file://assistants'
+
+  mcpTool = new MCPTool()
+
+  exaAPIKey: string = ''
+  openaiAPIKey: string = ''
+  toolUseEndpoint: string = ''
+  model: string = ''
 
   async onLoad() {
     // Register the retrieval tool
@@ -20,6 +28,51 @@ export default class JanAssistantExtension extends AssistantExtension {
     const assistantDirExist = await fs.existsSync(
       JanAssistantExtension._homeDir
     )
+    this.registerSettings([
+      {
+        key: 'exa-apikey',
+        title: 'MCP EXA API Key',
+        description:
+          'The API Key used to use the EXA API for the Model Context Protocol.',
+        controllerType: 'input',
+        controllerProps: {
+          placeholder: 'Exa API Key',
+          value: '',
+        },
+      },
+      {
+        key: 'chat-completions-endpoint',
+        title: 'Chat Completions Endpoint',
+        description: 'The endpoint to use for chat completions.',
+        controllerType: 'input',
+        controllerProps: {
+          placeholder: 'https://api.openai.com/v1/chat/completions',
+          value: 'https://api.openai.com/v1/chat/completions',
+        },
+      },
+      {
+        key: 'openai-api-key',
+        title: 'API Key',
+        description: 'API keys for authentication.',
+        controllerType: 'input',
+        controllerProps: {
+          placeholder: 'Insert API Key',
+          value: '',
+          type: 'password',
+          inputActions: ['unobscure', 'copy'],
+        },
+      },
+      {
+        key: 'openai-model',
+        title: 'Model',
+        description: 'Model for chat completions.',
+        controllerType: 'input',
+        controllerProps: {
+          placeholder: 'Model',
+          value: 'gpt-4o-mini',
+        },
+      },
+    ])
     if (
       localStorage.getItem(`${this.name}-version`) !== VERSION ||
       !assistantDirExist
@@ -33,6 +86,30 @@ export default class JanAssistantExtension extends AssistantExtension {
       // Update the assistant list
       events.emit(AssistantEvent.OnAssistantsUpdate, {})
     }
+    this.configure()
+  }
+
+  async onSettingUpdate<T>(key: string, value: T) {
+    this.configure()
+  }
+
+  async configure() {
+    this.exaAPIKey = await this.getSetting<string>('exa-apikey', '')
+    this.openaiAPIKey = await this.getSetting<string>('openai-api-key', '')
+    this.toolUseEndpoint = await this.getSetting<string>(
+      'chat-completions-endpoint',
+      ''
+    )
+    this.model = await this.getSetting<string>('openai-model', '')
+    this.mcpTool.updateSettings(
+      this.exaAPIKey,
+      this.openaiAPIKey,
+      this.toolUseEndpoint,
+      this.model
+    )
+    if (!ToolManager.instance().get('model-context-protocol')) {
+      ToolManager.instance().register(this.mcpTool)
+    }
   }
 
   /**
@@ -40,69 +117,10 @@ export default class JanAssistantExtension extends AssistantExtension {
    */
   onUnload(): void {}
 
-  async createAssistant(assistant: Assistant): Promise<void> {
-    const assistantDir = await joinPath([
-      JanAssistantExtension._homeDir,
-      assistant.id,
-    ])
-    if (!(await fs.existsSync(assistantDir))) await fs.mkdir(assistantDir)
-
-    // store the assistant metadata json
-    const assistantMetadataPath = await joinPath([
-      assistantDir,
-      'assistant.json',
-    ])
-    try {
-      await fs.writeFileSync(
-        assistantMetadataPath,
-        JSON.stringify(assistant, null, 2)
-      )
-    } catch (err) {
-      console.error(err)
-    }
-  }
+  async createAssistant(assistant: Assistant): Promise<void> {}
 
   async getAssistants(): Promise<Assistant[]> {
-    try {
-      // get all the assistant directories
-      // get all the assistant metadata json
-      const results: Assistant[] = []
-
-      const allFileName: string[] = await fs.readdirSync(
-        JanAssistantExtension._homeDir
-      )
-
-      for (const fileName of allFileName) {
-        const filePath = await joinPath([
-          JanAssistantExtension._homeDir,
-          fileName,
-        ])
-
-        if (!(await fs.fileStat(filePath))?.isDirectory) continue
-        const jsonFiles: string[] = (await fs.readdirSync(filePath)).filter(
-          (file: string) => file === 'assistant.json'
-        )
-
-        if (jsonFiles.length !== 1) {
-          // has more than one assistant file -> ignore
-          continue
-        }
-
-        const content = await fs.readFileSync(
-          await joinPath([filePath, jsonFiles[0]]),
-          'utf-8'
-        )
-        const assistant: Assistant =
-          typeof content === 'object' ? content : JSON.parse(content)
-
-        results.push(assistant)
-      }
-
-      return results
-    } catch (err) {
-      console.debug(err)
-      return [this.defaultAssistant]
-    }
+    return [this.defaultAssistant]
   }
 
   async deleteAssistant(assistant: Assistant): Promise<void> {
@@ -133,6 +151,11 @@ export default class JanAssistantExtension extends AssistantExtension {
     model: '*',
     instructions: '',
     tools: [
+      {
+        type: 'model-context-protocol',
+        enabled: true,
+        settings: {},
+      },
       {
         type: 'retrieval',
         enabled: false,
