@@ -1,5 +1,5 @@
-import { Connection } from '@unroute/sdk'
-import * as exa from '@unroute/mcp-exa'
+import { Connection } from '@smithery/sdk'
+import * as exa from '@smithery/mcp-exa'
 import { OpenAI } from 'openai'
 import { ChatCompletionMessageParam } from 'openai/resources'
 
@@ -20,6 +20,7 @@ export class MCPTool {
   ) {
     this.openai = new OpenAI({
       apiKey: openaiAPIKey,
+      baseURL: toolUseEndpoint,
     })
     this.exaAPIKey = exaAPIKey
     this.openaiAPIKey = openaiAPIKey
@@ -41,26 +42,31 @@ export class MCPTool {
     }
     // Create a handler
 
-    const handler = new (await import('@unroute/sdk/openai.js')).OpenAIHandler(
-      this.connection
-    )
+    const handler = new (
+      await import('@smithery/sdk/integrations/llm/openai.js')
+    ).OpenAIHandler(this.connection)
     const messages = data.messages as ChatCompletionMessageParam[]
 
     let isDone = false
 
     while (!isDone) {
-      const response = await this.openai.chat.completions.create({
-        model: this.model,
-        messages,
-        tools: await handler.listTools(),
-      })
+      const response = await this.openai.chat.completions
+        .create({
+          model: this.model,
+          messages,
+          tools: await handler.listTools(),
+        })
+        .catch((err) => {
+          console.error(err)
+          return data
+        })
       // Handle tool calls
       const toolMessages = await handler.call(response)
 
       messages.push(response.choices[0].message)
       messages.push(...toolMessages)
       isDone = toolMessages.length === 0
-      console.log('messages', messages)
+      console.log('messages', JSON.stringify(messages))
     }
 
     // Print the final conversation

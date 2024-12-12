@@ -42,17 +42,17 @@ export default class JanAssistantExtension extends AssistantExtension {
       },
       {
         key: 'chat-completions-endpoint',
-        title: 'Chat Completions Endpoint',
-        description: 'The endpoint to use for chat completions.',
+        title: 'OpenAI Compatible Endpoint',
+        description: 'The endpoint to use for making tool calls..',
         controllerType: 'input',
         controllerProps: {
-          placeholder: 'https://api.openai.com/v1/chat/completions',
-          value: 'https://api.openai.com/v1/chat/completions',
+          placeholder: 'https://api.openai.com/v1',
+          value: 'https://api.openai.com/v1',
         },
       },
       {
         key: 'openai-api-key',
-        title: 'API Key',
+        title: 'OpenAI API Key',
         description: 'API keys for authentication.',
         controllerType: 'input',
         controllerProps: {

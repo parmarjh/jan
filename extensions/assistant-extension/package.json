@@ -33,10 +33,10 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "@janhq/core": "file:../../core",
+    "@janhq/core": "latest",
     "@langchain/community": "0.0.13",
-    "@unroute/mcp-exa": "^0.0.3",
-    "@unroute/sdk": "^0.0.4",
+    "@smithery/mcp-exa": "^0.0.4",
+    "@smithery/sdk": "^0.0.4",
     "hnswlib-node": "^1.4.2",
     "langchain": "^0.0.214",
     "openai": "^4.76.0",
@@ -51,9 +51,8 @@
   "bundleDependencies": [
     "@janhq/core",
     "hnswlib-node",
-    "@unroute/mcp-exa",
-    "@unroute/sdk",
-    "@unroute/sdk",
+    "@smithery/mcp-exa",
+    "@smithery/sdk",
     "openai"
   ]
 }
