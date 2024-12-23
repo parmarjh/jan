@@ -15,6 +15,7 @@ import {
   themeDataAtom,
   themesOptionsAtom,
 } from '@/helpers/atoms/Setting.atom'
+import DefaultTheme from '@/theme.json'
 
 type NativeThemeProps = 'light' | 'dark'
 
@@ -85,6 +86,16 @@ export const useLoadTheme = () => {
   ])
 
   const applyTheme = useCallback(async () => {
+    if (!window.electronAPI) {
+      const theme = DefaultTheme as Theme
+      setThemeData(theme)
+      const variables = cssVars(theme.variables)
+      const headTag = document.getElementsByTagName('head')[0]
+      const styleTag = document.createElement('style')
+      styleTag.innerHTML = `:root {${variables}}`
+      headTag.appendChild(styleTag)
+      return
+    }
     if (!themeData || !themeOptions || !themePath) {
       await getThemes()
     } else {
