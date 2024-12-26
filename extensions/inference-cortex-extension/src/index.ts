@@ -9,6 +9,7 @@
 import {
   Model,
   executeOnMain,
+  EngineEvent,
   systemInformation,
   joinPath,
   LocalOAIEngine,
@@ -18,9 +19,7 @@ import {
   fs,
   events,
   ModelEvent,
-  SystemInformation,
   dirName,
-  AppConfigurationEventName,
 } from '@janhq/core'
 import PQueue from 'p-queue'
 import ky from 'ky'
@@ -112,20 +111,10 @@ export default class JanInferenceCortexExtension extends LocalOAIEngine {
     const systemInfo = await systemInformation()
     this.queue.add(() => executeOnMain(NODE, 'run', systemInfo))
     this.queue.add(() => this.healthz())
-    this.queue.add(() => this.setDefaultEngine(systemInfo))
     this.subscribeToEvents()
 
     window.addEventListener('beforeunload', () => {
       this.clean()
-    })
-
-    const currentMode = systemInfo.gpuSetting?.run_mode
-
-    events.on(AppConfigurationEventName.OnConfigurationUpdate, async () => {
-      const systemInfo = await systemInformation()
-      // Update run mode on settings update
-      if (systemInfo.gpuSetting?.run_mode !== currentMode)
-        this.queue.add(() => this.setDefaultEngine(systemInfo))
     })
   }
 
@@ -249,31 +238,6 @@ export default class JanInferenceCortexExtension extends LocalOAIEngine {
   }
 
   /**
-   * Set default engine variant on launch
-   */
-  private async setDefaultEngine(systemInfo: SystemInformation) {
-    const variant = await executeOnMain(
-      NODE,
-      'engineVariant',
-      systemInfo.gpuSetting
-    )
-    return (
-      ky
-        // Fallback support for legacy API
-        .post(
-          `${CORTEX_API_URL}/v1/engines/${InferenceEngine.cortex_llamacpp}/default?version=${CORTEX_ENGINE_VERSION}&variant=${variant}`,
-          {
-            json: {
-              version: CORTEX_ENGINE_VERSION,
-              variant,
-            },
-          }
-        )
-        .then(() => {})
-    )
-  }
-
-  /**
    * Clean cortex processes
    * @returns
    */
@@ -320,17 +284,22 @@ export default class JanInferenceCortexExtension extends LocalOAIEngine {
                   transferred: transferred,
                   total: total,
                 },
+                downloadType: data.task.type,
               }
             )
-            // Update models list from Hub
-            if (data.type === DownloadTypes.DownloadSuccess) {
-              // Delay for the state update from cortex.cpp
-              // Just to be sure
-              setTimeout(() => {
-                events.emit(ModelEvent.OnModelsUpdate, {
-                  fetch: true,
-                })
-              }, 500)
+
+            if (data.task.type === 'Engine') {
+              events.emit(EngineEvent.OnEngineUpdate, {})
+            } else {
+              if (data.type === DownloadTypes.DownloadSuccess) {
+                // Delay for the state update from cortex.cpp
+                // Just to be sure
+                setTimeout(() => {
+                  events.emit(ModelEvent.OnModelsUpdate, {
+                    fetch: true,
+                  })
+                }, 500)
+              }
             }
           })
 
