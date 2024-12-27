@@ -15,6 +15,7 @@
     "test:unit": "jest",
     "test:coverage": "jest --coverage",
     "test": "yarn workspace jan test:e2e",
+    "test:e2e:headless": "yarn workspace jan test:e2e:headless",
     "test-local": "yarn lint && yarn build:test && yarn test",
     "copy:assets": "cpx \"pre-install/*.tgz\" \"electron/pre-install/\" && cpx \"themes/**\" \"electron/themes\"",
     "dev:electron": "yarn copy:assets && yarn workspace jan dev",

@@ -110,6 +110,11 @@ test: lint
 	yarn test:coverage
 	yarn test
 
+test-headless: lint
+	yarn build:test
+	yarn test:coverage
+	yarn test:e2e:headless
+
 # Builds and publishes the app
 build-and-publish: check-file-counts
 	yarn build:publish

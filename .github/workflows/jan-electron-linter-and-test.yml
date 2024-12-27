@@ -291,7 +291,7 @@ jobs:
         run: |
           export DISPLAY=$(w -h | awk 'NR==1 {print $2}')
           echo -e "Display ID: $DISPLAY"
-          make test
+          make test-headless
 
       - uses: actions/upload-artifact@v4
         if: always()
@@ -371,4 +371,4 @@ jobs:
         run: |
           export DISPLAY=$(w -h | awk 'NR==1 {print $2}')
           echo -e "Display ID: $DISPLAY"
-          make test
+          make test-headless
