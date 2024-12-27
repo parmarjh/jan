@@ -287,6 +287,10 @@ jobs:
         run: |
           make update-playwright-config REPORT_PORTAL_URL=${{ secrets.REPORT_PORTAL_URL }} REPORT_PORTAL_API_KEY=${{ secrets.REPORT_PORTAL_API_KEY }} REPORT_PORTAL_PROJECT_NAME=${{ secrets.REPORT_PORTAL_PROJECT_NAME }} REPORT_PORTAL_LAUNCH_NAME="Jan App Linux" REPORT_PORTAL_DESCRIPTION="${{env.REPORT_PORTAL_DESCRIPTION}}"
 
+      - name: Setup Xvfb
+        run: |
+          sudo apt-get install xvfb
+
       - name: Linter and test
         run: |
           export DISPLAY=$(w -h | awk 'NR==1 {print $2}')
@@ -366,6 +370,10 @@ jobs:
         run: |
           rm -rf ~/jan
           make clean
+
+      - name: Setup Xvfb
+        run: |
+          sudo apt-get install xvfb
 
       - name: Linter and test
         run: |
